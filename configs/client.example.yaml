@@ -1,30 +1,44 @@
 # Tunnel Client Configuration
 
+# Client identification
+client_id: "server1"
+
 # Server connection
 server:
   # Tunnel server address
   host: "tunnel.yourdomain.com"
   port: 2222
+
+# SSH settings
+ssh:
+  # SSH private key for authentication
+  private_key_path: "keys/client_ed25519_key"
   
-  # SSH key for authentication
-  private_key_path: "/etc/tunnel/client_key"
+  # Known hosts file (optional)
+  known_hosts_path: "keys/known_hosts"
   
-  # Client identifier (unique name for this server)
-  client_id: "server1"
+  # Strict host key checking
+  strict_host_checking: false
 
 # Local services to tunnel
 tunnels:
   # SSH access to this server
   - name: "ssh"
-    local_host: "localhost"
+    local_host: "127.0.0.1"
     local_port: 22
     protocol: "tcp"
     
   # Web server (optional)
-  # - name: "web"
-  #   local_host: "localhost"
-  #   local_port: 80
-  #   protocol: "http"
+  - name: "web"
+    local_host: "127.0.0.1"
+    local_port: 80
+    protocol: "http"
+    
+  # Custom service (example)
+  # - name: "api"
+  #   local_host: "127.0.0.1"
+  #   local_port: 3000
+  #   protocol: "tcp"
 
 # Connection settings
 connection:
@@ -43,7 +57,7 @@ connection:
 logging:
   level: "info"  # debug, info, warn, error
   format: "text" # json, text
-  file: "/var/log/tunnel-client.log"
+  file: "logs/tunnel-client.log"
 
 # Health monitoring
 health:
