@@ -3,7 +3,7 @@ package tunnel
 import (
 	"fmt"
 	"net"
-	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -398,11 +398,11 @@ func TestClientTunnelDataFlow(t *testing.T) {
 	}
 
 	response := string(buffer[:n])
-	if !contains(response, "HTTP/1.1 200 OK") {
+	if !strings.Contains(response, "HTTP/1.1 200 OK") {
 		t.Errorf("Expected HTTP 200 response through tunnel, got: %s", response)
 	}
 
-	if !contains(response, "Hello, World!") {
+	if !strings.Contains(response, "Hello, World!") {
 		t.Errorf("Expected 'Hello, World!' in response, got: %s", response)
 	}
 
