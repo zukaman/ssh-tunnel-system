@@ -110,6 +110,10 @@ test-server:
 	@echo "Testing SSH tunnel server..."
 	go test -race -run TestServer -v ./pkg/tunnel/
 
+test-client:
+	@echo "Testing SSH tunnel client..."
+	go test -race -run TestClient -v ./pkg/tunnel/
+
 test-auth:
 	@echo "Testing SSH authentication..."
 	go test -race -run TestSSHAuth -v ./pkg/tunnel/
@@ -129,6 +133,18 @@ test-reliability:
 test-performance:
 	@echo "Testing large data transfers..."
 	go test -race -run TestLargeDataTransfer -v ./pkg/tunnel/
+
+test-integration:
+	@echo "Testing client-server integration..."
+	go test -race -run TestClientWithRealServer -v ./pkg/tunnel/
+
+test-reconnection:
+	@echo "Testing client reconnection..."
+	go test -race -run TestClientReconnection -v ./pkg/tunnel/
+
+test-dataflow:
+	@echo "Testing tunnel data flow..."
+	go test -race -run TestClientTunnelDataFlow -v ./pkg/tunnel/
 
 # Docker targets (for future use)
 docker-build:
@@ -155,8 +171,8 @@ generate-keys:
 	@echo "Generating SSH keys for development..."
 	mkdir -p keys
 	ssh-keygen -t ed25519 -f keys/ssh_host_ed25519_key -N "" -C "tunnel-server-host-key"
-	ssh-keygen -t ed25519 -f keys/client_key -N "" -C "tunnel-client-key"
-	cp keys/client_key.pub keys/authorized_keys
+	ssh-keygen -t ed25519 -f keys/client_ed25519_key -N "" -C "tunnel-client-key"
+	cp keys/client_ed25519_key.pub keys/authorized_keys
 	@echo "SSH keys generated in keys/ directory"
 
 # Run server with example config (for development)
@@ -168,6 +184,22 @@ run-server:
 run-client:
 	@echo "Starting tunnel client..."
 	./bin/tunnel-client -config configs/client.yaml
+
+# Demo - run full system locally
+demo: build setup-test-env generate-keys
+	@echo "Starting demo environment..."
+	@echo "1. Starting server in background..."
+	./bin/tunnel-server -config configs/server.yaml &
+	@echo "2. Waiting for server to start..."
+	sleep 3
+	@echo "3. Starting client..."
+	./bin/tunnel-client -config configs/client.yaml
+
+# Stop demo processes
+demo-stop:
+	@echo "Stopping demo processes..."
+	pkill -f tunnel-server || true
+	pkill -f tunnel-client || true
 
 # Monitor logs during development
 monitor-logs:
