@@ -53,8 +53,8 @@ type ClientServerConfig struct {
 
 // SSHConfig contains SSH-specific settings
 type SSHConfig struct {
-	PrivateKeyPath    string `mapstructure:"private_key_path"`
-	KnownHostsPath    string `mapstructure:"known_hosts_path"`
+	PrivateKeyPath     string `mapstructure:"private_key_path"`
+	KnownHostsPath     string `mapstructure:"known_hosts_path"`
 	StrictHostChecking bool   `mapstructure:"strict_host_checking"`
 }
 
