@@ -19,15 +19,15 @@ import (
 
 // Server represents the tunnel server
 type Server struct {
-	config     *config.ServerConfig
-	sshServer  *ssh.Server
-	listener   net.Listener
-	clients    map[string]*ClientConnection
-	portPool   *PortPool
-	hostKey    ssh.Signer
+	config         *config.ServerConfig
+	sshServer      *ssh.Server
+	listener       net.Listener
+	clients        map[string]*ClientConnection
+	portPool       *PortPool
+	hostKey        ssh.Signer
 	authorizedKeys map[string]ssh.PublicKey
-	mu         sync.RWMutex
-	done       chan struct{}
+	mu             sync.RWMutex
+	done           chan struct{}
 }
 
 // ClientConnection represents a connected client
@@ -78,7 +78,7 @@ func NewServer(config *config.ServerConfig) (*Server, error) {
 		end:   config.Server.PortRange.End,
 		used:  make(map[int]bool),
 	}
-	
+
 	// Initialize available ports
 	for i := portPool.start; i <= portPool.end; i++ {
 		portPool.available = append(portPool.available, i)
@@ -138,7 +138,7 @@ func (s *Server) Start() error {
 // Stop stops the tunnel server
 func (s *Server) Stop() {
 	close(s.done)
-	
+
 	if s.listener != nil {
 		s.listener.Close()
 	}
@@ -231,7 +231,7 @@ func (s *Server) handleConnection(conn net.Conn, sshConfig *ssh.ServerConfig) {
 		s.mu.Lock()
 		delete(s.clients, clientID)
 		s.mu.Unlock()
-		
+
 		// Close all tunnels for this client
 		client.mu.Lock()
 		for _, tunnel := range client.Tunnels {
@@ -240,7 +240,7 @@ func (s *Server) handleConnection(conn net.Conn, sshConfig *ssh.ServerConfig) {
 			}
 		}
 		client.mu.Unlock()
-		
+
 		logrus.WithField("client_id", clientID).Info("Client disconnected")
 	}()
 
@@ -430,9 +430,9 @@ func (s *Server) handleTCPIPForward(client *ClientConnection, req *ssh.Request) 
 	client.mu.Unlock()
 
 	logrus.WithFields(logrus.Fields{
-		"client_id":  client.ID,
-		"bind_addr":  bindAddr,
-		"tunnel":     tunnelName,
+		"client_id": client.ID,
+		"bind_addr": bindAddr,
+		"tunnel":    tunnelName,
 	}).Info("Reverse tunnel established")
 
 	// Reply with the actual port used
@@ -482,10 +482,10 @@ func (s *Server) handleReverseConnection(client *ClientConnection, tunnel *Tunne
 
 	// Create forwarded-tcpip channel to client
 	payload := struct {
-		ConnectedAddress string
-		ConnectedPort    uint32
+		ConnectedAddress  string
+		ConnectedPort     uint32
 		OriginatorAddress string
-		OriginatorPort   uint32
+		OriginatorPort    uint32
 	}{
 		ConnectedAddress:  tunnel.LocalHost,
 		ConnectedPort:     uint32(tunnel.LocalPort),
@@ -519,7 +519,7 @@ func (s *Server) handleCancelTCPIPForward(client *ClientConnection, req *ssh.Req
 	}
 
 	tunnelName := fmt.Sprintf("reverse-%s-%d", payload.BindIP, payload.BindPort)
-	
+
 	client.mu.Lock()
 	tunnel, exists := client.Tunnels[tunnelName]
 	if exists {
@@ -626,7 +626,7 @@ func (s *Server) loadAuthorizedKeys() error {
 
 	lines := strings.Split(string(data), "\n")
 	count := 0
-	
+
 	for i, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") {
@@ -659,8 +659,8 @@ func (s *Server) loadAuthorizedKeys() error {
 // publicKeyAuth handles SSH public key authentication
 func (s *Server) publicKeyAuth(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
 	logrus.WithFields(logrus.Fields{
-		"user":       conn.User(),
-		"key_type":   key.Type(),
+		"user":        conn.User(),
+		"key_type":    key.Type(),
 		"remote_addr": conn.RemoteAddr(),
 	}).Debug("Public key authentication attempt")
 
@@ -682,7 +682,7 @@ func (s *Server) publicKeyAuth(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.P
 				"user":   conn.User(),
 				"key_id": keyID,
 			}).Info("Public key authentication successful")
-			
+
 			return &ssh.Permissions{
 				Extensions: map[string]string{
 					"client-id": conn.User(),
@@ -779,7 +779,7 @@ func (s *Server) GetClientStats() map[string]interface{} {
 			"last_seen":     client.LastSeen,
 		}
 		client.mu.RUnlock()
-		
+
 		stats["clients"] = append(stats["clients"].([]map[string]interface{}), clientStats)
 	}
 
