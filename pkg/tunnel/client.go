@@ -441,11 +441,11 @@ func (c *Client) startHealthMonitoring() {
 	}
 
 	// Simple HTTP health check endpoint
-	http := &HTTPHealthServer{
+	healthServer := &HTTPHealthServer{
 		port:   c.config.Health.Port,
 		client: c,
 	}
-	http.Start()
+	healthServer.Start()
 }
 
 // loadPrivateKey loads the SSH private key for authentication
