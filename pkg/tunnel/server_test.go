@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -377,7 +378,7 @@ func TestReverseTunnel(t *testing.T) {
 	}
 
 	response := string(buffer[:n])
-	if !contains(response, "HTTP/1.1 200 OK") {
+	if !strings.Contains(response, "HTTP/1.1 200 OK") {
 		t.Errorf("Expected HTTP 200 OK response, got: %s", response)
 	}
 }
@@ -401,6 +402,9 @@ func TestMultipleClients(t *testing.T) {
 			client.Close()
 		}
 	}()
+
+	// Give time for connections to register
+	time.Sleep(100 * time.Millisecond)
 
 	// Check server statistics
 	stats := ts.server.GetClientStats()
@@ -525,12 +529,4 @@ func (s *TestHTTPServer) Close() {
 	if s.listener != nil {
 		s.listener.Close()
 	}
-}
-
-// contains checks if a string contains a substring
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		   (s == substr || 
-		    contains(s[1:], substr) || 
-		    (len(s) > 0 && s[:len(substr)] == substr))
 }
