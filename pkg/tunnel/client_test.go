@@ -1,7 +1,9 @@
 package tunnel
 
 import (
+	"fmt"
 	"net"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -167,15 +169,7 @@ func TestClientWithRealServer(t *testing.T) {
 	defer testHTTPServer.Close()
 
 	// Get the test server port
-	_, portStr, _ := net.SplitHostPort(testHTTPServer.Addr)
-	testPort := 8080 // Default port for test
-	if portStr != "" {
-		// Parse port if available
-		if addr, ok := testHTTPServer.listener.Addr().(*net.TCPAddr); ok {
-			testPort = addr.Port
-		}
-	}
-
+	testPort := testHTTPServer.listener.Addr().(*net.TCPAddr).Port
 	cfg.Tunnels[0].LocalPort = testPort
 
 	// Create and start client
@@ -382,8 +376,8 @@ func TestClientTunnelDataFlow(t *testing.T) {
 
 	// Test data flow through tunnel
 	// Connect to the remote port on server
-	tunnelConn, err := net.Dial("tcp", 
-		net.JoinHostPort("127.0.0.1", string(rune(httpTunnel.RemotePort))))
+	tunnelAddr := fmt.Sprintf("127.0.0.1:%d", httpTunnel.RemotePort)
+	tunnelConn, err := net.Dial("tcp", tunnelAddr)
 	if err != nil {
 		t.Fatalf("Failed to connect to tunnel: %v", err)
 	}
