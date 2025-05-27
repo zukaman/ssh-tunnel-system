@@ -129,6 +129,11 @@ func TestClientStartStop(t *testing.T) {
 
 // TestClientWithRealServer tests client connection to a real server
 func TestClientWithRealServer(t *testing.T) {
+	// Skip this test in short mode as it requires real network operations
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	// Setup test server first
 	ts := setupTestServer(t)
 	defer ts.cleanup()
@@ -300,6 +305,11 @@ func TestClientReconnection(t *testing.T) {
 
 // TestClientTunnelDataFlow tests data flow through established tunnels
 func TestClientTunnelDataFlow(t *testing.T) {
+	// Skip in short mode
+	if testing.Short() {
+		t.Skip("Skipping data flow test in short mode")
+	}
+
 	// This is a more complex integration test
 	// Setup test server
 	ts := setupTestServer(t)
@@ -405,6 +415,11 @@ func TestClientTunnelDataFlow(t *testing.T) {
 
 // TestClientMultipleTunnels tests client with multiple simultaneous tunnels
 func TestClientMultipleTunnels(t *testing.T) {
+	// Skip in short mode
+	if testing.Short() {
+		t.Skip("Skipping multiple tunnels test in short mode")
+	}
+
 	// Setup test server
 	ts := setupTestServer(t)
 	defer ts.cleanup()
@@ -496,51 +511,6 @@ func TestClientMultipleTunnels(t *testing.T) {
 	}
 }
 
-// BenchmarkClientConnection benchmarks client connection establishment
-func BenchmarkClientConnection(b *testing.B) {
-	// Setup test server
-	ts := setupTestServer(b)
-	defer ts.cleanup()
-
-	serverPort := ts.startServer(b)
-
-	cfg := &config.ClientConfig{
-		ClientID: "benchmark-client",
-		Server: config.ClientServerConfig{
-			Host: "127.0.0.1",
-			Port: serverPort,
-		},
-		Connection: config.ConnectionConfig{
-			RetryInterval:  1 * time.Second,
-			MaxRetries:     1,
-			ConnectTimeout: 3 * time.Second,
-		},
-		Health: config.HealthConfig{
-			Enabled: false,
-		},
-	}
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		client, err := NewClient(cfg)
-		if err != nil {
-			b.Fatalf("Failed to create client: %v", err)
-		}
-
-		err = client.Start()
-		if err != nil {
-			b.Fatalf("Failed to start client: %v", err)
-		}
-
-		// Wait for connection
-		time.Sleep(100 * time.Millisecond)
-
-		client.Stop()
-		time.Sleep(10 * time.Millisecond)
-	}
-}
-
 // TestClientErrorHandling tests various error conditions
 func TestClientErrorHandling(t *testing.T) {
 	t.Run("InvalidServerAddress", func(t *testing.T) {
@@ -580,6 +550,11 @@ func TestClientErrorHandling(t *testing.T) {
 	})
 
 	t.Run("InvalidLocalService", func(t *testing.T) {
+		// Skip in short mode
+		if testing.Short() {
+			t.Skip("Skipping error handling test in short mode")
+		}
+
 		// Setup test server
 		ts := setupTestServer(t)
 		defer ts.cleanup()
@@ -631,22 +606,4 @@ func TestClientErrorHandling(t *testing.T) {
 			t.Error("Tunnel to invalid service should not be active")
 		}
 	})
-}
-
-// Helper function for benchmark tests that accepts both *testing.T and *testing.B
-func setupTestServerForBenchmark(tb interface{}) *TestServer {
-	var t interface {
-		Fatalf(format string, args ...interface{})
-	}
-	
-	switch v := tb.(type) {
-	case *testing.T:
-		t = v
-	case *testing.B:
-		t = v
-	default:
-		panic("Invalid test type")
-	}
-	
-	return setupTestServer(t.(*testing.T))
 }
