@@ -10,53 +10,69 @@ server:
   grpc_host: "0.0.0.0"
   grpc_port: 8080
   
-  # Domain for tunnel access
+  # Domain for tunnel access (optional)
   domain: "tunnel.yourdomain.com"
   
-  # SSH host key paths
-  host_key_path: "/etc/tunnel/ssh_host_key"
+  # SSH host key path (auto-generated if not exists)
+  host_key_path: "keys/ssh_host_ed25519_key"
   
-  # Port range for client tunnels
+  # Authorized SSH public keys for client authentication
+  authorized_keys_path: "keys/authorized_keys"
+  
+  # Port range for client tunnels (each client gets one port)
   port_range:
     start: 2200
     end: 2300
 
-# Client authentication
+# Client authentication settings
 auth:
-  # Path to authorized SSH public keys
-  authorized_keys_path: "/etc/tunnel/authorized_keys"
+  # Path to authorized SSH public keys (can override server.authorized_keys_path)
+  authorized_keys_path: "keys/authorized_keys"
   
   # Enable client registration via API
   allow_registration: true
   
-  # Maximum clients per key
+  # Maximum clients per SSH key
   max_clients_per_key: 5
+  
+  # Require SSH key authentication (false = development mode, accepts all keys)
+  require_auth: false
 
-# Logging
+# Logging configuration
 logging:
   level: "info"  # debug, info, warn, error
-  format: "json" # json, text
-  file: "/var/log/tunnel-server.log"
+  format: "text" # json, text
+  file: ""       # empty = stdout, otherwise log file path
 
-# Monitoring
+# Monitoring and metrics
 monitoring:
-  # Enable Prometheus metrics
+  # Enable Prometheus metrics endpoint
   prometheus_enabled: true
   prometheus_port: 9090
   
-  # Health check interval for clients
+  # Health check interval for connected clients
   health_check_interval: "30s"
   
   # Client timeout (disconnect if no activity)
   client_timeout: "5m"
+  
+  # Enable detailed statistics collection
+  stats_enabled: true
 
-# Database (for client registry and logs)
+# Database (for client registry and connection logs)
 database:
   type: "sqlite"  # sqlite, postgres, mysql
-  path: "/var/lib/tunnel/clients.db"
+  path: "tunnel_system.db"
   # For postgres/mysql:
   # host: "localhost"
   # port: 5432
   # user: "tunnel"
   # password: "password"
   # database: "tunnel_system"
+
+# Development/Testing Configuration
+# For production, set:
+# - auth.require_auth: true
+# - logging.level: "warn" or "error"
+# - logging.file: "/var/log/tunnel-server.log"
+# - Move SSH keys to secure location like /etc/tunnel/
