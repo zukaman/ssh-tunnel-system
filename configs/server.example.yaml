@@ -1,0 +1,62 @@
+# Tunnel Server Configuration
+
+# Server settings
+server:
+  # Address to bind SSH server
+  ssh_host: "0.0.0.0"
+  ssh_port: 2222
+  
+  # Address to bind gRPC management API
+  grpc_host: "0.0.0.0"
+  grpc_port: 8080
+  
+  # Domain for tunnel access
+  domain: "tunnel.yourdomain.com"
+  
+  # SSH host key paths
+  host_key_path: "/etc/tunnel/ssh_host_key"
+  
+  # Port range for client tunnels
+  port_range:
+    start: 2200
+    end: 2300
+
+# Client authentication
+auth:
+  # Path to authorized SSH public keys
+  authorized_keys_path: "/etc/tunnel/authorized_keys"
+  
+  # Enable client registration via API
+  allow_registration: true
+  
+  # Maximum clients per key
+  max_clients_per_key: 5
+
+# Logging
+logging:
+  level: "info"  # debug, info, warn, error
+  format: "json" # json, text
+  file: "/var/log/tunnel-server.log"
+
+# Monitoring
+monitoring:
+  # Enable Prometheus metrics
+  prometheus_enabled: true
+  prometheus_port: 9090
+  
+  # Health check interval for clients
+  health_check_interval: "30s"
+  
+  # Client timeout (disconnect if no activity)
+  client_timeout: "5m"
+
+# Database (for client registry and logs)
+database:
+  type: "sqlite"  # sqlite, postgres, mysql
+  path: "/var/lib/tunnel/clients.db"
+  # For postgres/mysql:
+  # host: "localhost"
+  # port: 5432
+  # user: "tunnel"
+  # password: "password"
+  # database: "tunnel_system"
