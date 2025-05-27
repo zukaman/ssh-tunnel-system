@@ -17,13 +17,14 @@ type ServerConfig struct {
 
 // ServerSettings contains server-specific settings
 type ServerSettings struct {
-	SSHHost      string    `mapstructure:"ssh_host"`
-	SSHPort      int       `mapstructure:"ssh_port"`
-	GRPCHost     string    `mapstructure:"grpc_host"`
-	GRPCPort     int       `mapstructure:"grpc_port"`
-	Domain       string    `mapstructure:"domain"`
-	HostKeyPath  string    `mapstructure:"host_key_path"`
-	PortRange    PortRange `mapstructure:"port_range"`
+	SSHHost            string    `mapstructure:"ssh_host"`
+	SSHPort            int       `mapstructure:"ssh_port"`
+	GRPCHost           string    `mapstructure:"grpc_host"`
+	GRPCPort           int       `mapstructure:"grpc_port"`
+	Domain             string    `mapstructure:"domain"`
+	HostKeyPath        string    `mapstructure:"host_key_path"`
+	AuthorizedKeysPath string    `mapstructure:"authorized_keys_path"`
+	PortRange          PortRange `mapstructure:"port_range"`
 }
 
 // PortRange defines range of ports for client tunnels
@@ -52,10 +53,12 @@ type ClientServerConfig struct {
 
 // TunnelConfig defines a tunnel configuration
 type TunnelConfig struct {
-	Name      string `mapstructure:"name"`
-	LocalHost string `mapstructure:"local_host"`
-	LocalPort int    `mapstructure:"local_port"`
-	Protocol  string `mapstructure:"protocol"`
+	Name       string `mapstructure:"name"`
+	LocalHost  string `mapstructure:"local_host"`
+	LocalPort  int    `mapstructure:"local_port"`
+	RemotePort int    `mapstructure:"remote_port"`
+	Protocol   string `mapstructure:"protocol"`
+	Type       string `mapstructure:"type"` // "forward" or "reverse"
 }
 
 // ConnectionConfig contains connection-related settings
@@ -72,6 +75,7 @@ type AuthConfig struct {
 	AuthorizedKeysPath string `mapstructure:"authorized_keys_path"`
 	AllowRegistration  bool   `mapstructure:"allow_registration"`
 	MaxClientsPerKey   int    `mapstructure:"max_clients_per_key"`
+	RequireAuth        bool   `mapstructure:"require_auth"`
 }
 
 // LoggingConfig contains logging settings
@@ -83,10 +87,11 @@ type LoggingConfig struct {
 
 // MonitoringConfig contains monitoring settings
 type MonitoringConfig struct {
-	PrometheusEnabled     bool          `mapstructure:"prometheus_enabled"`
-	PrometheusPort        int           `mapstructure:"prometheus_port"`
-	HealthCheckInterval   time.Duration `mapstructure:"health_check_interval"`
-	ClientTimeout         time.Duration `mapstructure:"client_timeout"`
+	PrometheusEnabled   bool          `mapstructure:"prometheus_enabled"`
+	PrometheusPort      int           `mapstructure:"prometheus_port"`
+	HealthCheckInterval time.Duration `mapstructure:"health_check_interval"`
+	ClientTimeout       time.Duration `mapstructure:"client_timeout"`
+	StatsEnabled        bool          `mapstructure:"stats_enabled"`
 }
 
 // DatabaseConfig contains database settings
@@ -125,16 +130,21 @@ func LoadServerConfig(configPath string) (*ServerConfig, error) {
 	viper.SetDefault("server.ssh_port", 2222)
 	viper.SetDefault("server.grpc_host", "0.0.0.0")
 	viper.SetDefault("server.grpc_port", 8080)
+	viper.SetDefault("server.host_key_path", "keys/ssh_host_ed25519_key")
+	viper.SetDefault("server.authorized_keys_path", "keys/authorized_keys")
 	viper.SetDefault("server.port_range.start", 2200)
 	viper.SetDefault("server.port_range.end", 2300)
+	viper.SetDefault("auth.authorized_keys_path", "keys/authorized_keys")
 	viper.SetDefault("auth.allow_registration", true)
 	viper.SetDefault("auth.max_clients_per_key", 5)
+	viper.SetDefault("auth.require_auth", false)
 	viper.SetDefault("logging.level", "info")
 	viper.SetDefault("logging.format", "text")
 	viper.SetDefault("monitoring.prometheus_enabled", true)
 	viper.SetDefault("monitoring.prometheus_port", 9090)
 	viper.SetDefault("monitoring.health_check_interval", "30s")
 	viper.SetDefault("monitoring.client_timeout", "5m")
+	viper.SetDefault("monitoring.stats_enabled", true)
 	viper.SetDefault("database.type", "sqlite")
 	viper.SetDefault("database.path", "./clients.db")
 
@@ -157,6 +167,7 @@ func LoadClientConfig(configPath string) (*ClientConfig, error) {
 
 	// Set defaults
 	viper.SetDefault("server.port", 2222)
+	viper.SetDefault("server.private_key_path", "keys/client_ed25519_key")
 	viper.SetDefault("connection.retry_interval", "10s")
 	viper.SetDefault("connection.max_retries", 0)
 	viper.SetDefault("connection.keepalive_interval", "30s")
