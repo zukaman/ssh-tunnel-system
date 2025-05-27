@@ -8,15 +8,15 @@ import (
 
 // ServerConfig contains all server configuration
 type ServerConfig struct {
-	Server     ServerSettings    `mapstructure:"server"`
+	Server     ServerSection     `mapstructure:"server"`
 	Auth       AuthConfig        `mapstructure:"auth"`
 	Logging    LoggingConfig     `mapstructure:"logging"`
 	Monitoring MonitoringConfig  `mapstructure:"monitoring"`
 	Database   DatabaseConfig    `mapstructure:"database"`
 }
 
-// ServerSettings contains server-specific settings
-type ServerSettings struct {
+// ServerSection contains server-specific settings
+type ServerSection struct {
 	SSHHost            string    `mapstructure:"ssh_host"`
 	SSHPort            int       `mapstructure:"ssh_port"`
 	GRPCHost           string    `mapstructure:"grpc_host"`
@@ -36,6 +36,7 @@ type PortRange struct {
 // ClientConfig contains all client configuration
 type ClientConfig struct {
 	Server     ClientServerConfig `mapstructure:"server"`
+	SSH        SSHConfig          `mapstructure:"ssh"`
 	Tunnels    []TunnelConfig     `mapstructure:"tunnels"`
 	Connection ConnectionConfig   `mapstructure:"connection"`
 	Logging    LoggingConfig      `mapstructure:"logging"`
@@ -46,9 +47,15 @@ type ClientConfig struct {
 
 // ClientServerConfig contains server connection settings for client
 type ClientServerConfig struct {
-	Host           string `mapstructure:"host"`
-	Port           int    `mapstructure:"port"`
-	PrivateKeyPath string `mapstructure:"private_key_path"`
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
+}
+
+// SSHConfig contains SSH-specific settings
+type SSHConfig struct {
+	PrivateKeyPath    string `mapstructure:"private_key_path"`
+	KnownHostsPath    string `mapstructure:"known_hosts_path"`
+	StrictHostChecking bool   `mapstructure:"strict_host_checking"`
 }
 
 // TunnelConfig defines a tunnel configuration
@@ -167,7 +174,9 @@ func LoadClientConfig(configPath string) (*ClientConfig, error) {
 
 	// Set defaults
 	viper.SetDefault("server.port", 2222)
-	viper.SetDefault("server.private_key_path", "keys/client_ed25519_key")
+	viper.SetDefault("ssh.private_key_path", "keys/client_ed25519_key")
+	viper.SetDefault("ssh.known_hosts_path", "keys/known_hosts")
+	viper.SetDefault("ssh.strict_host_checking", false)
 	viper.SetDefault("connection.retry_interval", "10s")
 	viper.SetDefault("connection.max_retries", 0)
 	viper.SetDefault("connection.keepalive_interval", "30s")
@@ -180,6 +189,7 @@ func LoadClientConfig(configPath string) (*ClientConfig, error) {
 	viper.SetDefault("health.report_metrics", true)
 	viper.SetDefault("health.metrics_interval", "60s")
 	viper.SetDefault("service.restart_policy", "always")
+	viper.SetDefault("client_id", "default-client")
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, err
