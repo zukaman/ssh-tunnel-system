@@ -1,0 +1,76 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters-settings:
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
+  
+  govet:
+    check-shadowing: false
+  
+  golint:
+    min-confidence: 0.8
+  
+  gofmt:
+    simplify: true
+  
+  goimports:
+    local-prefixes: ssh-tunnel-system
+  
+  misspell:
+    locale: US
+  
+  unused:
+    check-exported: false
+
+linters:
+  enable:
+    - gofmt
+    - goimports
+    - govet
+    - misspell
+    - ineffassign
+  
+  disable:
+    - errcheck      # Too many false positives during development
+    - unused        # Too strict for development
+    - deadcode      # Deprecated
+    - varcheck      # Deprecated
+    - structcheck   # Deprecated
+    - golint        # Deprecated
+    - interfacer    # Deprecated
+    - maligned      # Deprecated
+    - scopelint     # Deprecated
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+    
+    - path: pkg/tunnel/
+      text: "should have comment"
+      linters:
+        - golint
+    
+    - text: "G204"  # Subprocess with variable
+      linters:
+        - gosec
+    
+    - text: "G304"  # File path join
+      linters:
+        - gosec
+
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
