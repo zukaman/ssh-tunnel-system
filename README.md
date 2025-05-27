@@ -6,15 +6,38 @@
 
 Self-hosted SSH tunnel system (Serveo alternative) for accessing servers behind NAT.
 
+## ⚠️ Development Status
+
+**This project is currently in active development.** While the core SSH tunneling functionality is implemented, extensive testing is still in progress. Use with caution in production environments.
+
+### What's Working ✅
+- SSH tunnel server implementation
+- Basic reverse tunnel functionality  
+- SSH key authentication
+- Port allocation and management
+- Configuration system
+- Build system and CI/CD
+
+### What's Being Tested 🧪
+- Client auto-reconnection
+- Multi-client scenarios
+- Data integrity through tunnels
+- Error handling and recovery
+- Performance under load
+
+### What's Coming Soon 🚧
+- CLI management tools
+- Docker containers
+- Production deployment guides
+- Comprehensive documentation
+
 ## Features
 
 - **SSH Reverse Tunnels**: Access servers behind NAT via SSH
-- **Auto-reconnection**: Clients automatically reconnect on connection loss
-- **CLI Management**: Simple command-line interface for tunnel management
+- **Auto-reconnection**: Clients automatically reconnect on connection loss (in development)
 - **Secure**: SSH key authentication and encrypted connections
 - **Lightweight**: Single binary deployment, minimal resource usage
 - **Self-hosted**: Full control over your tunnel infrastructure
-- **High Performance**: Tested for >1000 concurrent connections
 - **Cross-platform**: Linux, Windows, macOS support
 
 ## Architecture
@@ -22,7 +45,7 @@ Self-hosted SSH tunnel system (Serveo alternative) for accessing servers behind 
 ```
 [Your Computer] → [Bridge Server] ← [Remote Servers behind NAT]
                        ↕
-                 [CLI Management]
+                 [Management Interface] (coming soon)
 ```
 
 ## Quick Start
@@ -34,12 +57,11 @@ Self-hosted SSH tunnel system (Serveo alternative) for accessing servers behind 
 git clone https://github.com/zukaman/ssh-tunnel-system.git
 cd ssh-tunnel-system
 
+# Quick test to ensure everything compiles
+make test-quick
+
 # Build all components
 make build
-
-# Or build for specific platforms
-make build-linux    # Linux binaries
-make build-windows  # Windows binaries
 ```
 
 ### 2. Setup Bridge Server (VPS with public IP)
@@ -51,7 +73,7 @@ make generate-keys
 # Copy example config
 cp configs/server.example.yaml configs/server.yaml
 
-# Edit configuration
+# Edit configuration as needed
 nano configs/server.yaml
 
 # Run tunnel server
@@ -64,21 +86,11 @@ nano configs/server.yaml
 # Copy example config
 cp configs/client.example.yaml configs/client.yaml
 
-# Edit configuration
+# Edit configuration (set server address, tunnels, etc.)
 nano configs/client.yaml
 
 # Run tunnel client
 ./bin/tunnel-client -config configs/client.yaml
-```
-
-### 4. Manage Tunnels (Coming Soon)
-
-```bash
-# View connected servers
-./bin/tunnel-cli status
-
-# Access remote server
-ssh -p 2201 user@your-domain.com
 ```
 
 ## Development
@@ -86,19 +98,19 @@ ssh -p 2201 user@your-domain.com
 ### Testing
 
 ```bash
-# Run all tests
+# Quick compilation and basic checks
+make test-quick
+
+# Run all tests (may have failures - development in progress)
 make test
 
-# Run tests with coverage
-make test-cover
+# Run specific test categories  
+make test-server       # Server functionality
+make test-client       # Client functionality
+make test-integration  # Client-server integration
 
-# Run benchmarks
-make bench
-
-# Run specific test categories
-make test-server       # Server tests
-make test-tunnels      # Tunnel functionality tests
-make test-reliability  # Reliability tests
+# Run with verbose output to see what's happening
+make test-verbose
 ```
 
 ### Development Environment
@@ -107,78 +119,69 @@ make test-reliability  # Reliability tests
 # Setup development environment
 make dev-setup
 
-# Setup test environment
+# Setup test environment with keys and configs
 make setup-test-env
 
 # Quick development cycle
-make quick-test
+make quick-test  # fmt + vet + basic tests
 ```
+
+## Current Limitations
+
+- Tests are still being stabilized
+- Some edge cases in reconnection logic need work
+- Performance optimization ongoing
+- Documentation is incomplete
+- No CLI management tool yet
 
 ## Project Status
 
-🎯 **Stage 2.2 Complete** - SSH tunnel server fully implemented and tested
+🎯 **Current Stage: 3.1 - Tunnel Client Development**
 
-### Completed ✅
-- [x] Project structure and CI/CD pipeline
-- [x] SSH tunnel server implementation
-- [x] Comprehensive testing suite (85%+ coverage)
-- [x] Port allocation and management
-- [x] SSH authentication system
-- [x] Reverse tunnel functionality
-- [x] Multi-client support
-- [x] Performance benchmarks
-- [x] Cross-platform builds
+### Completed
+- [x] Project infrastructure and CI/CD
+- [x] SSH tunnel server core functionality
+- [x] Configuration system
+- [x] Basic client implementation
+- [x] Build and deployment scripts
 
-### Current Stage: 3.1 - Tunnel Client
-- [ ] SSH client with reverse tunnel
-- [ ] Auto-reconnection mechanism
-- [ ] Configuration management
-- [ ] Heartbeat system
+### In Progress  
+- [ ] Client test stabilization
+- [ ] Auto-reconnection refinement
+- [ ] Integration test improvements
+- [ ] Error handling enhancement
 
 ### Next Steps
-- [ ] gRPC API server for management
 - [ ] CLI management tool
-- [ ] Docker containerization
+- [ ] Docker containerization  
 - [ ] Production deployment guides
+- [ ] Performance optimization
 
-## Testing
+## Contributing
 
-The project includes comprehensive testing:
+This project is in active development. Contributions are welcome, but please note:
 
-- **Unit Tests**: Core functionality and edge cases
-- **Integration Tests**: End-to-end tunnel functionality
-- **Benchmarks**: Performance testing up to 1000+ connections
-- **Reliability Tests**: Connection recovery and error handling
-- **Security Tests**: Authentication and authorization
+1. Tests may be unstable - this is expected during development
+2. Focus on core functionality first, polish comes later
+3. Run `make test-quick` to check basic compilation
+4. Full test suite with `make test` may have expected failures
 
-See [Testing Guide](docs/TESTING.md) for detailed information.
+## Performance Expectations
 
-## Performance
+Current performance targets (under development):
+- **Throughput**: ~50-100MB/s through tunnels
+- **Connections**: 100+ concurrent clients  
+- **Latency**: <10ms added latency for local connections
+- **Memory**: <100MB per 1000 connections
 
-Benchmark results on modest hardware:
-- **Throughput**: ~100MB/s through tunnels
-- **Connections**: 1000+ concurrent clients supported
-- **Latency**: <5ms added latency for local connections
-- **Memory**: <50MB per 1000 connections
+*Note: These are development targets, actual performance may vary*
 
 ## Documentation
 
 - [Development Plan](docs/DEVELOPMENT_PLAN.md) - Roadmap and progress
-- [Testing Guide](docs/TESTING.md) - Comprehensive testing documentation
+- [Testing Guide](docs/TESTING.md) - Testing documentation
 - [Installation Guide](docs/INSTALLATION.md) (Coming soon)
 - [Configuration Reference](docs/CONFIGURATION.md) (Coming soon)
-- [API Documentation](docs/API.md) (Coming soon)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Run tests (`make test`)
-4. Commit your changes (`git commit -m 'Add amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
-
-All contributions are welcome! Please ensure tests pass and maintain code coverage above 80%.
 
 ## Security
 
@@ -186,9 +189,8 @@ All contributions are welcome! Please ensure tests pass and maintain code covera
 - No shell access - tunneling only
 - Configurable port ranges
 - Connection logging and monitoring
-- Rate limiting (planned)
 
-Report security issues privately to the maintainers.
+⚠️ **Security Note**: This is development software. Do not use in production without thorough security review.
 
 ## License
 
@@ -198,4 +200,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - Inspired by [Serveo](https://serveo.net/)
 - Built with [Go](https://golang.org/) and [golang.org/x/crypto/ssh](https://pkg.go.dev/golang.org/x/crypto/ssh)
-- Thanks to all contributors and testers
+- Thanks to contributors and testers
+
+---
+
+**Note**: This README reflects the current development status. Information will be updated as features are completed and tested.
